@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DOM Clobbering MXSS Challenge</title>
+</head>
+<body>
+    <div id="content"></div>
+
+<script>
+    
+    const ALLOWLIST_TAG = ['P', 'DIV', 'SPAN', 'IFRAME', 'IMG', 'A', 'B', 'I', 'MATH', 'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'CODE', 'PRE', 'BR', 'HR', 'EM', 'STRONG', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD']
+    const BLOCKLIST_TAG = ['SCRIPT', 'NOSCRIPT'];
+    const WHITELIST_ATTRIBUTE = ['align', 'color', 'controls', 'height', 'href', 'id', 'src', 'target', 'title', 'type', 'width', 'name'];
+    const WHITELIST_SCHEMA = ['http:', 'https:'];
+
+    document.body.onload = () => {
+        const params = new URLSearchParams(document.location.search).get("html");
+        if (params) {
+            sanitizeAndInsert(params, document.getElementById('content'));
+        }
+    };
+
+    function sanitizeNodeInPlace(node) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            if (window.BLOCKLIST ? BLOCKLIST_TAG.includes(node.nodeName.toUpperCase()) : !ALLOWLIST_TAG.includes(node.nodeName.toUpperCase())) {
+                node.remove();
+                console.log(`Removed element: ${node.nodeName}`);
+                return false; 
+            }
+
+            for (let i = node.attributes.length - 1; i >= 0; i--) {
+                const attr = node.attributes[i];
+                const attrName = attr.name.toLowerCase();
+                if (!WHITELIST_ATTRIBUTE.includes(attrName)) {
+                    node.removeAttribute(attr.name);
+                    continue;
+                }
+                if (['src', 'href'].includes(attrName)) {
+                    try {
+                        const url = new URL(attr.value, document.baseURI);
+                        if (!WHITELIST_SCHEMA.includes(url.protocol)) {
+                            node.removeAttribute(attr.name);
+                            console.log(`Removed disallowed URL in attribute ${attr.name}: ${attr.value}`);
+                        }
+                    } catch {
+                        node.removeAttribute(attr.name);
+                        console.log(`Removed malformed URL in attribute ${attr.name}: ${attr.value}`);
+                    }
+                }
+            }
+
+            for (let i = node.childNodes.length - 1; i >= 0; i--) {
+                const child = node.childNodes[i];
+                if (!sanitizeNodeInPlace(child)) {
+                }
+            }
+        } else if (node.nodeType === Node.TEXT_NODE) {
+        } else {
+            node.remove();
+            return false;
+        }
+        return true; 
+    }
+
+    function sanitizeAndInsert(input, container) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(`<body>${input}</body>`, 'text/html');
+        const body = doc.body;
+
+        const topLevelNodes = Array.from(body.childNodes);
+
+        for (const node of topLevelNodes) {
+            const clone = node.cloneNode(true);
+            if (sanitizeNodeInPlace(clone)) {
+                container.innerHTML+=clone.outerHTML; // Progressively insert sanitized node for speed purpose
+            }
+        }
+    }
+</script>
+</body>
+</html>
