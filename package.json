@@ -1,0 +1,15 @@
+{
+  "name": "vaadata_blog",
+  "version": "1.0.0",
+  "description": "Vaadata personal blog creator application !",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Minilucker",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "puppeteer": "^24.3.0"
+  }
+}

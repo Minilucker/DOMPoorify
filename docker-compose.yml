@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "3000:3000"  # Expose app to host on port 3000
+    environment:
+      - NODE_ENV=production
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
+    restart: unless-stopped
+    cap_drop:
+      - all
+    tmpfs:
+      - /tmp:mode=1733,exec
