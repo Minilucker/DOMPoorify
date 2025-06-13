@@ -101,15 +101,17 @@
 </head>
 
 <body>
-  <header><img id="logo" src="/images/logo_vaadata_dark.svg" alt="logo_vaadata_dark"></header>
-
+  <header>
+    <img id="logo" src="/images/logo_vaadata_dark.svg" alt="logo_vaadata_dark">
+  </header>
 
   <div class="title">
     <h1>Blog maker</h1>
   </div>
-  <hr style="border: none; height: 2px; background-color: grey; width : 70%">
-  <div class="container">
 
+  <hr style="border: none; height: 2px; background-color: grey; width: 70%">
+
+  <div class="container">
     <div id="flash" class="flash-message">
       ✅ Your blog post was successfully submitted!
     </div>
@@ -117,7 +119,12 @@
     <form id="blogForm">
       <label for="content">Content</label>
       <textarea id="content" name="content" rows="6" required></textarea>
-      <input type="checkbox" name="legacy">
+
+      <label>
+        <input type="checkbox" name="legacy" id="legacyCheckbox">
+        Legacy Mode
+      </label>
+
       <button type="submit">Publish</button>
     </form>
 
@@ -129,33 +136,49 @@
     // Show flash message if ?success=true is in the URL
     const params = new URLSearchParams(window.location.search);
     if (params.get('success') === 'true') {
-      document.getElementById('flash').style.display = 'block';
+      const flash = document.getElementById('flash');
+      flash.style.display = 'block';
+      setTimeout(() => {
+        flash.style.display = 'none';
+      }, 5000);
     }
 
     const form = document.getElementById('blogForm');
     const iframe = document.getElementById('previewFrame');
-    const content_input = document.getElementById('content')
+    const content_input = document.getElementById('content');
+    const legacyCheckbox = document.getElementById('legacyCheckbox');
 
     form.addEventListener("submit", (event) => {
-      event.preventDefault()
+      event.preventDefault();
       fetch("/", {
         method: 'POST',
         body: JSON.stringify({
           url: iframe.contentWindow.location.href
-        }), 
+        }),
         headers: {
           'Content-Type': 'application/json'
         },
       })
-    })
-    form.addEventListener("input", (event) => {
-      if (event.target.name === "legacy") {
-        iframe.src = `/preview?legacy=${event.target.value}#`
-      } else {
-        iframe.contentWindow.location.hash = event.target.value
-      }
+      .then(res => {
+        if (res.ok) {
+          const flash = document.getElementById('flash');
+          flash.style.display = 'block';
+          setTimeout(() => {
+            flash.style.display = 'none';
+          }, 5000);
+        }
+      })
+      .catch(err => console.error("POST failed:", err));
     });
 
+    form.addEventListener("input", (event) => {
+      if (event.target.name === "legacy") {
+        const legacy = legacyCheckbox.checked ? "true" : "false";
+        iframe.src = `/preview?legacy=${legacy}#`;
+      } else {
+        iframe.contentWindow.location.hash = event.target.value;
+      }
+    });
   </script>
 
 </body>

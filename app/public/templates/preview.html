@@ -24,7 +24,7 @@
                 const legacyParam = new URLSearchParams(document.location.search).get("legacy")
                 if (params) {
                     sanitizeAndInsert(params, content_div);
-                    legacyParam === "on" ? enableLegacyMode() : null
+                    legacyParam === "true" ? enableLegacyMode() : null
                 }
             } catch (error) {
                 console.log(error)
