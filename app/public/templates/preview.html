@@ -41,7 +41,7 @@
                     } else {
                         host = window.location.host
                     }
-                    const url = `http://${host}/legacyMode.json`;
+                    const url = `${window.location.protocol}://${host}/legacyMode.json`;
                     xhr.open("GET", url, false); // async request
                     xhr.onreadystatechange = function () {
                         if (xhr.readyState === 4) { // DONE
