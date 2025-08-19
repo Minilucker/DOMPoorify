@@ -115,15 +115,15 @@
             }
         }
 
-        function sanitizeURI(attr) {
+        function sanitizeURI(attr, targetNode) {
             try {
                 const url = new URL(attr.value, document.baseURI);
                 if (BLACKLIST_SCHEMA.includes(url.protocol)) {
-                    node.removeAttribute(attr.name);
+                    targetNode.removeAttribute(attr.name);
                     console.log(`Removed disallowed URL in attribute ${attr.name}: ${attr.value}`);
                 }
             } catch {
-                node.removeAttribute(attr.name);
+                targetNode.removeAttribute(attr.name);
                 console.log(`Removed malformed URL in attribute ${attr.name}: ${attr.value}`);
             }
         }
@@ -137,7 +137,7 @@
                     continue;
                 }
                 if (['src', 'href'].includes(attrName)) {
-                    sanitizeURI(attr)
+                    sanitizeURI(attr, node)
                 }
 
             }
